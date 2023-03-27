@@ -4,4 +4,4 @@ I'll be doing this challenge in rust to help me understand and learn its intrica
 # First Image 3/26/2023
 ![alt text](https://github.com/jmstevers/rust-ray-tracer-challenge/blob/main/output.jpg?raw=true)
 
-The path of a projectile thats been fired with a force of a specified vector that was affected by gravity and wind
+The path of a projectile
