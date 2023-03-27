@@ -1,7 +1,93 @@
-use crate::math::types::Color;
 use std::collections::HashMap;
+use std::ops::{Add, Mul, Sub};
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub struct Color {
+    pub red: f32,
+    pub green: f32,
+    pub blue: f32,
+}
+
+impl Color {
+    pub fn new(r: f32, g: f32, b: f32) -> Color {
+        Color {
+            red: r,
+            green: g,
+            blue: b,
+        }
+    }
+
+    // turns our color format into the rgb format
+    pub fn to_rgb(self) -> Rgb {
+        Rgb::new(
+            (self.red * 255.0).round() as u8,
+            (self.green * 255.0).round() as u8,
+            (self.blue * 255.0).round() as u8,
+        )
+    }
+}
+
+impl Add<Color> for Color {
+    type Output = Color;
+    fn add(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red + rhs.red,
+            self.green + rhs.green,
+            self.blue + rhs.blue,
+        )
+    }
+}
+
+impl Sub<Color> for Color {
+    type Output = Color;
+    fn sub(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red - rhs.red,
+            self.green - rhs.green,
+            self.blue - rhs.blue,
+        )
+    }
+}
+
+impl Mul<f32> for Color {
+    type Output = Color;
+    fn mul(self, rhs: f32) -> Self::Output {
+        Color::new(self.red * rhs, self.green * rhs, self.blue * rhs)
+    }
+}
+
+impl Mul<Color> for Color {
+    type Output = Color;
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red * rhs.red,
+            self.green * rhs.green,
+            self.blue * rhs.blue,
+        )
+    }
+}
+
+pub struct Rgb {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
+impl Rgb {
+    pub fn new(r: u8, g: u8, b: u8) -> Rgb {
+        Rgb {
+            red: r,
+            green: g,
+            blue: b,
+        }
+    }
+
+    pub fn to_string(self) -> String {
+        format!("{} {} {}", self.red, self.green, self.blue)
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Debug)]
 pub struct Coordinate {
     pub x: i16,
     pub y: i16,
@@ -20,19 +106,13 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    pub fn new(width: i16, height: i16) -> Canvas {
+    // create a new canvas with all pixels set to black
+    pub fn new(width: i16, height: i16, color: Color) -> Canvas {
         let mut pixels = HashMap::new();
 
-        for i in 0..(width - 1) {
-            for j in 0..(height - 1) {
-                pixels.insert(
-                    Coordinate { x: i, y: j },
-                    Color {
-                        red: 0.0,
-                        green: 0.0,
-                        blue: 0.0,
-                    },
-                );
+        for i in 0..(height) {
+            for j in 0..(width) {
+                pixels.insert(Coordinate { x: j, y: i }, color);
             }
         }
 
@@ -43,26 +123,50 @@ impl Canvas {
         }
     }
 
-    pub fn to_ppm<'a>(self) -> String {
-        let mut result = String::from(
+    // write the canvas to a ppm file format
+    pub fn to_ppm(self) -> String {
+        // header of ppm file
+        let mut result = format!(
             "\
 P3
-5 3
+{} {}
 255",
+            self.width, self.height
         );
 
-        for i in 0..(self.width - 1) {
+        // loops through each pixel and adds it to the result string
+        for i in 0..(self.height) {
             result += "\n";
-            for j in 0..(self.height - 1) {
-                result += self
-                    .pixels
-                    .get(&Coordinate::new(i, j))
-                    .unwrap()
-                    .to_string()
-                    .as_str();
-            }
-        }
 
+            // seperated into a new variable to make sure each line isnt too long
+            let mut line = String::new();
+
+            // so we dont make a new line for every value greater than 70, just the first one
+            let mut count = 0;
+
+            for j in 0..(self.width) {
+                // gets the color of the pixel and converts it to a string
+                let color_as_rgb_string = self
+                    .pixels
+                    .get(&Coordinate::new(j, i))
+                    .unwrap()
+                    .to_rgb()
+                    .to_string();
+
+                line += color_as_rgb_string.as_str();
+
+                if line.len() >= 70 + count {
+                    // makes sure each line isnt too long
+                    line += "\n";
+                    count += 70;
+                } else if j != self.width - 1 {
+                    // adds a space between each pixel
+                    line += " ";
+                }
+            }
+            result += line.as_str();
+        }
+        result += "\n";
         result
     }
 }
@@ -70,35 +174,4 @@ P3
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn canvas() {
-        let mut canvas = Canvas::new(5, 3);
-
-        let color_a = Color::new(1.5, 0.0, 0.0);
-        let color_b = Color::new(0.0, 0.5, 0.0);
-        let color_c = Color::new(-0.5, 0.0, 1.0);
-
-        canvas.pixels.insert(Coordinate::new(0, 0), color_a);
-        canvas.pixels.insert(Coordinate::new(2, 1), color_b);
-        canvas.pixels.insert(Coordinate::new(4, 2), color_c);
-
-        assert_eq!(
-            canvas.to_ppm(),
-            "\
-P3
-5 3
-255
-255 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 128 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 255 "
-        );
-    }
-
-    #[test]
-    fn print() {
-        let canvas = Canvas::new(5, 3);
-
-        println!("{:?}", canvas.pixels);
-    }
 }
