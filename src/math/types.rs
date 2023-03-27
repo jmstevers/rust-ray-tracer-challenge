@@ -25,15 +25,15 @@ impl Point {
 
 impl Sub<Point> for Point {
     type Output = Vector;
-    fn sub(self, other: Point) -> Vector {
-        Vector::new(self.x - other.x, self.y - other.y, self.z - other.z)
+    fn sub(self, rhs: Point) -> Self::Output {
+        Vector::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
 impl Sub<Vector> for Point {
     type Output = Point;
-    fn sub(self, other: Vector) -> Point {
-        Point::new(self.x - other.x, self.y - other.y, self.z - other.z)
+    fn sub(self, rhs: Vector) -> Self::Output {
+        Point::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
@@ -83,64 +83,124 @@ impl Vector {
         Vector::new(self.x / mag, self.y / mag, self.z / mag)
     }
 
-    pub fn dot(self, other: Vector) -> f32 {
-        self.x * other.x + self.y * other.y + self.z * other.z
+    pub fn dot(self, rhs: Vector) -> f32 {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
-    pub fn cross(self, other: Vector) -> Vector {
+    pub fn cross(self, rhs: Vector) -> Vector {
         Vector::new(
-            self.y * other.z - self.z * other.y,
-            self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x,
+            self.y * rhs.z - self.z * rhs.y,
+            self.z * rhs.x - self.x * rhs.z,
+            self.x * rhs.y - self.y * rhs.x,
         )
     }
 }
 
 impl Add<Vector> for Vector {
     type Output = Vector;
-    fn add(self, other: Vector) -> Vector {
-        Vector::new(self.x + other.x, self.y + other.y, self.z + other.z)
+    fn add(self, rhs: Vector) -> Self::Output {
+        Vector::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
 impl Add<Point> for Vector {
     type Output = Point;
-    fn add(self, other: Point) -> Point {
-        Point::new(self.x + other.x, self.y + other.y, self.z + other.z)
+    fn add(self, rhs: Point) -> Self::Output {
+        Point::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
 impl Sub<Vector> for Vector {
     type Output = Vector;
-    fn sub(self, other: Vector) -> Vector {
-        Vector::new(self.x - other.x, self.y - other.y, self.z - other.z)
+    fn sub(self, rhs: Vector) -> Self::Output {
+        Vector::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
 impl Mul<f32> for Vector {
     type Output = Vector;
-    fn mul(self, other: f32) -> Vector {
-        Vector::new(self.x * other, self.y * other, self.z * other)
+    fn mul(self, rhs: f32) -> Self::Output {
+        Vector::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
 impl Div<f32> for Vector {
     type Output = Vector;
-    fn div(self, other: f32) -> Vector {
-        Vector::new(self.x / other, self.y / other, self.z / other)
+    fn div(self, rhs: f32) -> Self::Output {
+        Vector::new(self.x / rhs, self.y / rhs, self.z / rhs)
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub struct Color {
+    pub red: f32,
+    pub green: f32,
+    pub blue: f32,
+}
+
+impl Color {
+    pub fn new(r: f32, g: f32, b: f32) -> Color {
+        Color {
+            red: r,
+            green: g,
+            blue: b,
+        }
+    }
+
+    pub fn to_string<'a>(self) -> String {
+        format!("{} {} {} ", self.red, self.green, self.blue)
+    }
+}
+
+impl Add<Color> for Color {
+    type Output = Color;
+    fn add(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red + rhs.red,
+            self.green + rhs.green,
+            self.blue + rhs.blue,
+        )
+    }
+}
+
+impl Sub<Color> for Color {
+    type Output = Color;
+    fn sub(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red - rhs.red,
+            self.green - rhs.green,
+            self.blue - rhs.blue,
+        )
+    }
+}
+
+impl Mul<f32> for Color {
+    type Output = Color;
+    fn mul(self, rhs: f32) -> Self::Output {
+        Color::new(self.red * rhs, self.green * rhs, self.blue * rhs)
+    }
+}
+
+impl Mul<Color> for Color {
+    type Output = Color;
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(
+            self.red * rhs.red,
+            self.green * rhs.green,
+            self.blue * rhs.blue,
+        )
     }
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use super::*;
 
     #[test]
-    fn cross_vector() {
-        let vector_a = Vector::new(1.0, 2.0, 3.0);
-        let vector_b = Vector::new(2.0, 3.0, 4.0);
+    fn color() {
+        let color_a = Color::new(1.0, 0.2, 0.4);
+        let color_b = Color::new(0.9, 1.0, 0.1);
 
-        assert_eq!(vector_a.cross(vector_b), Vector::new(-1.0, 2.0, -1.0));
-        assert_eq!(vector_b.cross(vector_a), Vector::new(1.0, -2.0, 1.0));
+        assert_eq!(color_a * color_b, Color::new(0.9, 0.2, 0.04));
     }
 }
