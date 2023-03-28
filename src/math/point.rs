@@ -2,7 +2,7 @@ use std::ops::MulAssign;
 use std::ops::{Mul, Sub};
 
 use super::Matrix4x4;
-use super::Vector3;
+use super::Vector;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Point {
@@ -21,9 +21,9 @@ impl Point {
 
 // subtracting two points results in a vector
 impl Sub<Point> for Point {
-    type Output = Vector3;
+    type Output = Vector;
     fn sub(self, rhs: Point) -> Self::Output {
-        Vector3::new(
+        Vector::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[0],
             self.xyz[2] - rhs.xyz[0],
@@ -32,9 +32,9 @@ impl Sub<Point> for Point {
 }
 
 // adding a vector to a point results in a new point
-impl Sub<Vector3> for Point {
+impl Sub<Vector> for Point {
     type Output = Self;
-    fn sub(self, rhs: Vector3) -> Self {
+    fn sub(self, rhs: Vector) -> Self {
         Point::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[1],

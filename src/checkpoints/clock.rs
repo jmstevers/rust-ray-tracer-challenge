@@ -1,6 +1,6 @@
 use crate::{
     math::{Matrix4x4, Point},
-    rendering::{Canvas, Color, Coordinate},
+    rendering::canvas::{Canvas, Color, Coordinate},
 };
 use std::{f32::consts::PI, fs::File, io::Write};
 
@@ -10,7 +10,7 @@ pub fn run() -> std::io::Result<()> {
     let mut hand = Point::new(0.0, 450.0, 0.0);
 
     for _ in 0..100000000 {
-        let xy = Coordinate::new((hand.xyz[0] + 500.0) as i16, (hand.xyz[1] + 500.0) as i16);
+        let xy = Coordinate((hand.xyz[0] + 500.0) as i16, (hand.xyz[1] + 500.0) as i16);
         canvas.pixels.insert(xy, white);
         canvas.pixels.insert(xy + (0, 1), white);
         canvas.pixels.insert(xy + (1, 0), white);

@@ -5,7 +5,7 @@ pub mod vector;
 
 pub use self::matrix::*;
 pub use self::point::Point;
-pub use self::vector::Vector3;
+pub use self::vector::Vector;
 
 #[cfg(test)]
 mod test {

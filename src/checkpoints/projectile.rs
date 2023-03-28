@@ -1,32 +1,32 @@
 use std::{fs::File, io::Write};
 
 use crate::{
-    math::{Point, Vector3},
-    rendering::{Canvas, Color, Coordinate},
+    math::{Point, Vector},
+    rendering::canvas::{Canvas, Color, Coordinate},
 };
 
 pub struct Projectile {
     pub position: Point,
-    pub velocity: Vector3,
+    pub velocity: Vector,
 }
 
 #[derive(Clone, Copy)]
 pub struct Environment {
-    pub gravity: Vector3,
-    pub wind: Vector3,
+    pub gravity: Vector,
+    pub wind: Vector,
 }
 
 pub fn run() -> std::io::Result<()> {
     let mut canvas = Canvas::new(900, 550, Color::new(0.0, 0.0, 0.0));
 
     let environment = Environment {
-        gravity: Vector3::new(0.0, -0.1, 0.0),
-        wind: Vector3::new(-0.01, 0.0, 0.0),
+        gravity: Vector::new(0.0, -0.1, 0.0),
+        wind: Vector::new(-0.01, 0.0, 0.0),
     };
 
     let mut projectile = Projectile {
         position: Point::new(0.0, 1.0, 0.0),
-        velocity: Vector3::new(1.0, 1.8, 0.0).normalize() * 10.25,
+        velocity: Vector::new(1.0, 1.8, 0.0).normalize() * 10.25,
     };
 
     loop {
@@ -36,7 +36,7 @@ pub fn run() -> std::io::Result<()> {
             break;
         }
 
-        let coordinate = Coordinate::new(
+        let coordinate = Coordinate(
             projectile.position.xyz[0] as i16,
             canvas.height - projectile.position.xyz[1] as i16,
         );
