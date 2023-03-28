@@ -1,4 +1,6 @@
-use crate::math::{Point, Vector};
+use std::{cmp::Ordering, ops::Mul};
+
+use crate::math::{Matrix4x4, Point, Vector};
 
 use super::{
     intersection::Intersection,
@@ -11,7 +13,14 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new(origin: Point, direction: Vector) -> Ray {
+    pub fn new(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> Ray {
+        Ray {
+            origin: Point::new(x1, y1, z1),
+            direction: Vector::new(x2, y2, z2),
+        }
+    }
+
+    pub fn point_vector(origin: Point, direction: Vector) -> Ray {
         Ray { origin, direction }
     }
 
@@ -37,6 +46,36 @@ impl Ray {
             return None;
         }
     }
+
+    pub fn hit(intersections: &mut Vec<Intersection<Sphere>>) -> Option<Intersection<Sphere>> {
+        // need to make it not return a negative value if it finds a min
+        loop {
+            let a = intersections
+                .iter()
+                .min_by(|x, y| x.time.partial_cmp(&y.time).unwrap_or(Ordering::Less))
+                .copied();
+
+            let b = match a {
+                Some(x) => x,
+                None => return None,
+            };
+
+            if b.time < 0.0 {
+                intersections.retain(|x| x.time != b.time);
+            } else if intersections.len() == 0 {
+                return None;
+            } else {
+                return Some(b);
+            }
+        }
+    }
+}
+
+impl Mul<Matrix4x4> for Ray {
+    type Output = Self;
+    fn mul(self, rhs: Matrix4x4) -> Self::Output {
+        Ray::point_vector(self.origin * rhs, self.direction * rhs)
+    }
 }
 
 #[cfg(test)]
@@ -46,25 +85,13 @@ mod test {
     use super::*;
 
     #[test]
-    fn intersection() {
-        let sphere = Sphere::new(0);
-        let xs = Intersection::new(3.5, sphere);
+    fn transform() {
+        let ray = Ray::new(1.0, 2.0, 3.0, 0.0, 1.0, 0.0);
+        let translation = Matrix4x4::identity().translation(3.0, 4.0, 5.0);
 
-        assert_eq!(xs.time, 3.5);
-        assert_eq!(xs.object, sphere);
-    }
+        let ray2 = ray * translation;
 
-    #[test]
-    fn intersection_a() {
-        let ray = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        let sphere = Sphere::new(0);
-        let xs = match ray.intersection(sphere) {
-            Some(_) => ray.intersection(sphere).unwrap(),
-            None => return,
-        };
-
-        assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].object, sphere);
-        assert_eq!(xs[1].object, sphere);
+        assert_eq!(ray2.origin, Point::new(4.0, 6.0, 8.0));
+        assert_eq!(ray2.direction, Vector::new(0.0, 1.0, 0.0));
     }
 }
