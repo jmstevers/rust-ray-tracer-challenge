@@ -1,4 +1,7 @@
-use std::ops::Mul;
+use std::{
+    mem::take,
+    ops::{Mul, MulAssign},
+};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Matrix4x4 {
@@ -6,11 +9,11 @@ pub struct Matrix4x4 {
 }
 
 impl Matrix4x4 {
-    pub fn new(data: [[f32; 4]; 4]) -> Matrix4x4 {
+    pub fn new(data: [[f32; 4]; 4]) -> Self {
         Matrix4x4 { data }
     }
 
-    pub fn identity() -> Matrix4x4 {
+    pub fn identity() -> Self {
         Matrix4x4::new([
             [1.0, 0.0, 0.0, 0.0],
             [0.0, 1.0, 0.0, 0.0],
@@ -19,50 +22,87 @@ impl Matrix4x4 {
         ])
     }
 
-    pub fn translation(x: f32, y: f32, z: f32) -> Matrix4x4 {
-        Matrix4x4::new([
+    pub fn translation(mut self, x: f32, y: f32, z: f32) -> Self {
+        self *= Matrix4x4::new([
             [1.0, 0.0, 0.0, x],
             [0.0, 1.0, 0.0, y],
             [0.0, 0.0, 1.0, z],
             [0.0, 0.0, 0.0, 1.0],
-        ])
+        ]);
+
+        self
     }
 
-    pub fn scaling(x: f32, y: f32, z: f32) -> Matrix4x4 {
-        Matrix4x4::new([
+    pub fn scaling(mut self, x: f32, y: f32, z: f32) -> Self {
+        self *= Matrix4x4::new([
             [x, 0.0, 0.0, 0.0],
             [0.0, y, 0.0, 0.0],
             [0.0, 0.0, z, 0.0],
             [0.0, 0.0, 0.0, 1.0],
-        ])
+        ]);
+
+        self
     }
 
-    pub fn x_rotation(r: f32) -> Matrix4x4 {
-        Matrix4x4::new([
+    pub fn x_rotation(mut self, r: f32) -> Self {
+        self *= Matrix4x4::new([
             [1.0, 0.0, 0.0, 0.0],
             [0.0, r.cos(), -r.sin(), 0.0],
             [0.0, r.sin(), r.cos(), 0.0],
             [0.0, 0.0, 0.0, 1.0],
-        ])
+        ]);
+
+        self
     }
 
-    pub fn zero() -> Matrix4x4 {
+    pub fn y_rotation(mut self, r: f32) -> Self {
+        self *= Matrix4x4::new([
+            [r.cos(), 0.0, r.sin(), 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [-r.sin(), 0.0, r.cos(), 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        self
+    }
+
+    pub fn z_rotation(mut self, r: f32) -> Self {
+        self *= Matrix4x4::new([
+            [r.cos(), -r.sin(), 0.0, 0.0],
+            [r.sin(), r.cos(), 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        self
+    }
+
+    pub fn shearing(mut self, xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> Self {
+        self *= Matrix4x4::new([
+            [1.0, xy, xz, 0.0],
+            [yx, 1.0, yz, 0.0],
+            [zx, zy, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+
+        self
+    }
+
+    pub fn zero() -> Self {
         Matrix4x4::new([[0.0; 4]; 4])
     }
 
-    pub fn transpose(self) -> Matrix4x4 {
-        let mut result = Matrix4x4::zero();
-
+    pub fn transpose(mut self) -> Self {
         for i in 0..4 {
             for j in 0..4 {
-                result.data[i][j] = self.data[j][i]
+                self.data[i][j] = self.data[j][i]
             }
         }
 
-        result
+        self
     }
 
-    pub fn submatrix(self, row: usize, col: usize) -> Matrix3x3 {
+    pub fn submatrix(&self, row: usize, col: usize) -> Matrix3x3 {
         let mut nums: Vec<f32> = vec![];
         for i in 0..4 {
             if i == row {
@@ -88,11 +128,11 @@ impl Matrix4x4 {
         result
     }
 
-    pub fn minor(self, row: usize, col: usize) -> f32 {
+    pub fn minor(&self, row: usize, col: usize) -> f32 {
         self.submatrix(row, col).determinant()
     }
 
-    pub fn cofactor(self, row: usize, col: usize) -> f32 {
+    pub fn cofactor(&self, row: usize, col: usize) -> f32 {
         let minor = self.minor(row, col);
 
         match (row + col) % 2 {
@@ -102,46 +142,39 @@ impl Matrix4x4 {
         }
     }
 
-    pub fn determinant(self) -> f32 {
-        let mut result = 0.0;
-
-        for i in 0..4 {
-            result += self.data[0][i] * self.cofactor(0, i);
-        }
-
-        result
+    pub fn determinant(&self) -> f32 {
+        self.data
+            .into_iter()
+            .enumerate()
+            .fold(0.0, |acc, x| acc + x.1[0] * self.cofactor(0, x.0))
     }
 
-    pub fn round(self, decimal_point: f32) -> Matrix4x4 {
-        Matrix4x4::new(
-            self.data
-                .map(|i| i.map(|j| (j * decimal_point).round() / decimal_point)),
-        )
+    pub fn round(mut self, decimal_point: f32) -> Self {
+        self.data = self
+            .data
+            .map(|i| i.map(|j| (j * decimal_point).round() / decimal_point));
+
+        self
     }
 
-    pub fn inverse(self) -> Result<Matrix4x4, &'static str> {
+    pub fn inverse(mut self) -> Self {
         let determinant = self.determinant();
-        if determinant == 0.0 {
-            return Err("Determinant of matrix is 0.");
-        }
-
-        let mut result = Matrix4x4::zero();
 
         for i in 0..4 {
             for j in 0..4 {
                 let cofactor = self.cofactor(i, j);
 
-                result.data[j][i] = cofactor / determinant
+                self.data[j][i] = cofactor / determinant
             }
         }
 
-        Ok(result)
+        self
     }
 }
 
 impl Mul<Matrix4x4> for Matrix4x4 {
-    type Output = Matrix4x4;
-    fn mul(self, rhs: Matrix4x4) -> Self::Output {
+    type Output = Self;
+    fn mul(self, rhs: Matrix4x4) -> Self {
         let mut result = Matrix4x4::new([[0.0; 4]; 4]);
 
         for i in 0..4 {
@@ -157,6 +190,13 @@ impl Mul<Matrix4x4> for Matrix4x4 {
     }
 }
 
+impl MulAssign<Matrix4x4> for Matrix4x4 {
+    fn mul_assign(&mut self, rhs: Matrix4x4) {
+        *self = *self * rhs;
+    }
+}
+
+// un "optimized"
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Matrix3x3 {
     pub data: [[f32; 3]; 3],

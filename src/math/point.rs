@@ -1,15 +1,20 @@
+use std::ops::MulAssign;
 use std::ops::{Mul, Sub};
 
 use super::Matrix4x4;
 use super::Vector3;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Point {
     pub xyz: [f32; 3],
 }
 
 impl Point {
-    pub fn new(xyz: [f32; 3]) -> Point {
+    pub fn new(x: f32, y: f32, z: f32) -> Point {
+        Point { xyz: [x, y, z] }
+    }
+
+    pub fn new_arr(xyz: [f32; 3]) -> Point {
         Point { xyz }
     }
 }
@@ -18,11 +23,11 @@ impl Point {
 impl Sub<Point> for Point {
     type Output = Vector3;
     fn sub(self, rhs: Point) -> Self::Output {
-        Vector3::new([
+        Vector3::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[0],
             self.xyz[2] - rhs.xyz[0],
-        ])
+        )
     }
 }
 
@@ -30,11 +35,11 @@ impl Sub<Point> for Point {
 impl Sub<Vector3> for Point {
     type Output = Self;
     fn sub(self, rhs: Vector3) -> Self {
-        Point::new([
+        Point::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[1],
             self.xyz[2] - rhs.xyz[2],
-        ])
+        )
     }
 }
 
@@ -54,6 +59,12 @@ impl Mul<Matrix4x4> for Point {
             + self.xyz[2] * rhs.data[2][2]
             + 1.0 * rhs.data[2][3];
 
-        Point::new([x, y, z])
+        Point::new(x, y, z)
+    }
+}
+
+impl MulAssign<Matrix4x4> for Point {
+    fn mul_assign(&mut self, rhs: Matrix4x4) {
+        *self = *self * rhs
     }
 }

@@ -3,91 +3,71 @@ use std::ops::{Add, Mul, Sub};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Color {
-    pub red: f32,
-    pub green: f32,
-    pub blue: f32,
+    pub rgb: [f32; 3],
 }
 
 impl Color {
     pub fn new(r: f32, g: f32, b: f32) -> Color {
-        Color {
-            red: r,
-            green: g,
-            blue: b,
-        }
+        Color { rgb: [r, g, b] }
+    }
+
+    pub fn new_arr(rgb: [f32; 3]) -> Color {
+        Color { rgb }
     }
 
     // turns our color format into the rgb format
     pub fn to_rgb(self) -> Rgb {
-        Rgb::new(
-            (self.red * 255.0).round() as u8,
-            (self.green * 255.0).round() as u8,
-            (self.blue * 255.0).round() as u8,
-        )
+        Rgb::new_arr(self.rgb.map(|x| (x * 255.0).round() as u8))
     }
 }
 
 impl Add<Color> for Color {
     type Output = Color;
     fn add(self, rhs: Color) -> Self::Output {
-        Color::new(
-            self.red + rhs.red,
-            self.green + rhs.green,
-            self.blue + rhs.blue,
-        )
+        Color::new_arr(self.rgb.zip(rhs.rgb).map(|x| x.0 + x.1))
     }
 }
 
 impl Sub<Color> for Color {
     type Output = Color;
     fn sub(self, rhs: Color) -> Self::Output {
-        Color::new(
-            self.red - rhs.red,
-            self.green - rhs.green,
-            self.blue - rhs.blue,
-        )
+        Color::new_arr(self.rgb.zip(rhs.rgb).map(|x| x.0 - x.1))
     }
 }
 
 impl Mul<f32> for Color {
     type Output = Color;
     fn mul(self, rhs: f32) -> Self::Output {
-        Color::new(self.red * rhs, self.green * rhs, self.blue * rhs)
+        Color::new_arr(self.rgb.map(|x| x * rhs))
     }
 }
 
 impl Mul<Color> for Color {
     type Output = Color;
     fn mul(self, rhs: Color) -> Self::Output {
-        Color::new(
-            self.red * rhs.red,
-            self.green * rhs.green,
-            self.blue * rhs.blue,
-        )
+        Color::new_arr(self.rgb.zip(rhs.rgb).map(|x| x.0 * x.1))
     }
 }
 
 pub struct Rgb {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
+    pub rgb: [u8; 3],
 }
 
 impl Rgb {
     pub fn new(r: u8, g: u8, b: u8) -> Rgb {
-        Rgb {
-            red: r,
-            green: g,
-            blue: b,
-        }
+        Rgb { rgb: [r, g, b] }
+    }
+
+    pub fn new_arr(rgb: [u8; 3]) -> Rgb {
+        Rgb { rgb }
     }
 
     pub fn to_string(self) -> String {
-        format!("{} {} {}", self.red, self.green, self.blue)
+        format!("{} {} {}", self.rgb[0], self.rgb[1], self.rgb[2])
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 pub struct Coordinate {
     pub x: i16,
     pub y: i16,
@@ -99,6 +79,13 @@ impl Coordinate {
     }
 }
 
+impl Add<(i16, i16)> for Coordinate {
+    type Output = Self;
+    fn add(self, rhs: (i16, i16)) -> Self::Output {
+        Coordinate::new(self.x + rhs.0, self.y + rhs.1)
+    }
+}
+
 pub struct Canvas {
     pub width: i16,
     pub height: i16,
@@ -107,7 +94,7 @@ pub struct Canvas {
 
 impl Canvas {
     // create a new canvas with all pixels set to black
-    pub fn new(width: i16, height: i16, color: Color) -> Canvas {
+    pub fn new(width: i16, height: i16, color: Color) -> Self {
         let mut pixels = HashMap::new();
 
         for i in 0..(height) {
@@ -124,7 +111,7 @@ impl Canvas {
     }
 
     // write the canvas to a ppm file format
-    pub fn to_ppm(self) -> String {
+    pub fn to_ppm(&self) -> String {
         // header of ppm file
         let mut result = format!(
             "\
@@ -169,9 +156,4 @@ P3
         result += "\n";
         result
     }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
 }
