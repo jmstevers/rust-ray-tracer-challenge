@@ -6,5 +6,5 @@ mod math;
 mod rendering;
 
 fn main() {
-    checkpoints::circle_fill::run().unwrap();
+    checkpoints::shaded_circle::run().unwrap();
 }

@@ -1,9 +1,10 @@
 use crate::{
     math::Matrix4x4,
     rendering::{
-        canvas::{Canvas, Color, Coordinate},
-        object::{Object, Shape},
+        canvas::{Canvas, Coordinate},
+        object::Object,
         ray::Ray,
+        Color, Material,
     },
 };
 use std::{fs::File, io::Write};
@@ -12,7 +13,10 @@ pub fn run() -> std::io::Result<()> {
     let mut canvas = Canvas::new(1000, 1000, Color::new(0.0, 0.0, 0.0));
     let white = Color::new(1.0, 1.0, 1.0);
 
-    let sphere = Object::new_sphere(Matrix4x4::identity().translate(500.0, 500.0, 2000000.0));
+    let sphere = Object::new_sphere(
+        Material::default(),
+        Matrix4x4::identity().translate(500.0, 500.0, 2000000.0),
+    );
 
     let hits: Vec<Ray> = canvas
         .pixels

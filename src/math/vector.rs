@@ -1,7 +1,4 @@
-use std::{
-    f32::EPSILON,
-    ops::{Add, Div, Mul, Sub},
-};
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::{Matrix4x4, Point};
 

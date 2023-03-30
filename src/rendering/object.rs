@@ -1,5 +1,7 @@
 use crate::math::{Matrix4x4, Point, Vector};
 
+use super::Material;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Shape {
     Sphere,
@@ -8,13 +10,15 @@ pub enum Shape {
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Object {
     pub shape: Shape,
+    pub material: Material,
     pub transform: Matrix4x4,
 }
 
 impl Object {
-    pub fn new_sphere(transform: Matrix4x4) -> Self {
+    pub fn new_sphere(material: Material, transform: Matrix4x4) -> Self {
         Object {
             shape: Shape::Sphere,
+            material,
             transform,
         }
     }

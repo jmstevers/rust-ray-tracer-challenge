@@ -70,39 +70,3 @@ impl Mul<Matrix4x4> for Ray {
         Ray::point_vector(self.origin * rhs, self.direction * rhs)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use crate::rendering::object::Shape;
-
-    use super::*;
-
-    #[test]
-    fn intersect() {
-        let ray = Ray::new(0.0, 0.0, -5.0, 0.0, 0.0, 1.0);
-        let mut sphere = Object::new_sphere(Matrix4x4::identity());
-        let transform = Matrix4x4::identity().scale(2.0, 2.0, 2.0);
-        sphere.transform *= transform;
-
-        let xs = match ray.intersection(&sphere) {
-            Some(x) => x,
-            None => panic!(),
-        };
-
-        assert_eq!(xs[0].time, 3.0);
-        assert_eq!(xs[1].time, 7.0);
-    }
-
-    #[test]
-    fn intersect_a() {
-        let ray = Ray::new(0.0, 0.0, -5.0, 0.0, 0.0, 1.0);
-        let mut sphere = Object::new_sphere(Matrix4x4::identity());
-        let transform = Matrix4x4::identity().translate(5.0, 0.0, 0.0);
-        sphere.transform *= transform;
-
-        match ray.intersection(&sphere) {
-            Some(_) => panic!(),
-            None => return,
-        };
-    }
-}

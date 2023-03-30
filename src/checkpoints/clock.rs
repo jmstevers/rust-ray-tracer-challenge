@@ -1,6 +1,9 @@
 use crate::{
     math::{Matrix4x4, Point},
-    rendering::canvas::{Canvas, Color, Coordinate},
+    rendering::{
+        canvas::{Canvas, Coordinate},
+        Color,
+    },
 };
 use std::{f32::consts::PI, fs::File, io::Write};
 

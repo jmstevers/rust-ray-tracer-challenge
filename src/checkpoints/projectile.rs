@@ -2,7 +2,10 @@ use std::{fs::File, io::Write};
 
 use crate::{
     math::{Point, Vector},
-    rendering::canvas::{Canvas, Color, Coordinate},
+    rendering::{
+        canvas::{Canvas, Coordinate},
+        Color,
+    },
 };
 
 pub struct Projectile {
