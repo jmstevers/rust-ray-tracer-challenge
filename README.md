@@ -6,3 +6,6 @@ This project is me going through the Ray Tracer Challenge book by Jamis Buck by 
 The path of a projectile
 # Ch.4 3/28/2023
 ![alt text](https://github.com/jmstevers/rust-ray-tracer-challenge/blob/main/images/circle.png?raw=true)
+
+# Ch.5 3/30/2023
+![alt text](https://github.com/jmstevers/rust-ray-tracer-challenge/blob/main/images/filled_circle.png?raw=true)
