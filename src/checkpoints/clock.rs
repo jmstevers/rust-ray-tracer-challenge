@@ -15,7 +15,7 @@ pub fn run() -> std::io::Result<()> {
         canvas.pixels.insert(xy + (0, 1), white);
         canvas.pixels.insert(xy + (1, 0), white);
         canvas.pixels.insert(xy + (1, 1), white);
-        hand *= Matrix4x4::identity().z_rotation(PI / 50000000.0)
+        hand *= Matrix4x4::identity().rotate_z(PI / 50000000.0)
     }
 
     let mut output = File::create("output.ppm")?;

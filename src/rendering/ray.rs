@@ -2,21 +2,19 @@ use std::{cmp::Ordering, ops::Mul};
 
 use crate::math::{Matrix4x4, Point, Vector};
 
-use super::{
-    intersection::Intersection,
-    object::{Object, Sphere},
-};
+use super::{intersection::Intersection, object::Object};
 
+#[derive(Clone, Copy, Debug)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vector,
 }
 
 impl Ray {
-    pub fn new(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> Ray {
+    pub fn new(px: f32, py: f32, pz: f32, vx: f32, vy: f32, vz: f32) -> Ray {
         Ray {
-            origin: Point::new(x1, y1, z1),
-            direction: Vector::new(x2, y2, z2),
+            origin: Point::new(px, py, pz),
+            direction: Vector::new(vx, vy, vz),
         }
     }
 
@@ -24,48 +22,43 @@ impl Ray {
         Ray { origin, direction }
     }
 
-    pub fn position_at(&self, t: f32) -> Point {
-        self.direction * t + self.origin
+    pub fn position_at(&self, time: f32) -> Point {
+        self.direction * time + self.origin
     }
 
-    pub fn intersection(&self, sphere: Sphere) -> Option<[Intersection<Sphere>; 2]> {
-        let sphere_to_ray = self.origin - Point::new(0.0, 0.0, 0.0);
+    pub fn intersection(&self, object: &Object) -> Option<[Intersection; 2]> {
+        let inverse_transform = *self * object.transform.inverse();
+        let sphere_to_ray = inverse_transform.origin - Point::new(0.0, 0.0, 0.0);
 
-        let a = self.direction.dot(self.direction);
-        let b = self.direction.dot(sphere_to_ray) * 2.0;
+        let a = inverse_transform.direction.dot(inverse_transform.direction);
+        let b = inverse_transform.direction.dot(sphere_to_ray) * 2.0;
         let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
 
-        let discriminant = (b * b) - (4.0 * a * c);
+        let discriminant = b * b - 4.0 * a * c;
 
         if discriminant >= 0.0 {
             return Some([
-                Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), sphere),
-                Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), sphere),
+                Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *object),
+                Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *object),
             ]);
         } else {
             return None;
         }
     }
 
-    pub fn hit(intersections: &mut Vec<Intersection<Sphere>>) -> Option<Intersection<Sphere>> {
-        // need to make it not return a negative value if it finds a min
+    pub fn hit(intersections: &mut Vec<Intersection>) -> Option<Intersection> {
         loop {
             let a = intersections
                 .iter()
                 .min_by(|x, y| x.time.partial_cmp(&y.time).unwrap_or(Ordering::Less))
-                .copied();
+                .copied()?;
 
-            let b = match a {
-                Some(x) => x,
-                None => return None,
-            };
-
-            if b.time < 0.0 {
-                intersections.retain(|x| x.time != b.time);
+            if a.time < 0.0 {
+                intersections.retain(|x| x.time != a.time);
             } else if intersections.len() == 0 {
                 return None;
             } else {
-                return Some(b);
+                return Some(a);
             }
         }
     }
@@ -80,18 +73,36 @@ impl Mul<Matrix4x4> for Ray {
 
 #[cfg(test)]
 mod test {
-    use crate::rendering::{intersection::Intersection, object::Sphere};
+    use crate::rendering::object::Shape;
 
     use super::*;
 
     #[test]
-    fn transform() {
-        let ray = Ray::new(1.0, 2.0, 3.0, 0.0, 1.0, 0.0);
-        let translation = Matrix4x4::identity().translation(3.0, 4.0, 5.0);
+    fn intersect() {
+        let ray = Ray::new(0.0, 0.0, -5.0, 0.0, 0.0, 1.0);
+        let mut sphere = Object::new_sphere(Matrix4x4::identity());
+        let transform = Matrix4x4::identity().scale(2.0, 2.0, 2.0);
+        sphere.transform *= transform;
 
-        let ray2 = ray * translation;
+        let xs = match ray.intersection(&sphere) {
+            Some(x) => x,
+            None => panic!(),
+        };
 
-        assert_eq!(ray2.origin, Point::new(4.0, 6.0, 8.0));
-        assert_eq!(ray2.direction, Vector::new(0.0, 1.0, 0.0));
+        assert_eq!(xs[0].time, 3.0);
+        assert_eq!(xs[1].time, 7.0);
+    }
+
+    #[test]
+    fn intersect_a() {
+        let ray = Ray::new(0.0, 0.0, -5.0, 0.0, 0.0, 1.0);
+        let mut sphere = Object::new_sphere(Matrix4x4::identity());
+        let transform = Matrix4x4::identity().translate(5.0, 0.0, 0.0);
+        sphere.transform *= transform;
+
+        match ray.intersection(&sphere) {
+            Some(_) => panic!(),
+            None => return,
+        };
     }
 }

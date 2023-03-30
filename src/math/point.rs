@@ -10,12 +10,20 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(x: f32, y: f32, z: f32) -> Point {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Point { xyz: [x, y, z] }
     }
 
-    pub fn new_arr(xyz: [f32; 3]) -> Point {
+    pub fn new_arr(xyz: [f32; 3]) -> Self {
         Point { xyz }
+    }
+
+    pub fn zero() -> Self {
+        Point::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn round(&self, epsilon: f32) -> Self {
+        Point::new_arr(self.xyz.map(|v| (v / epsilon).round() * epsilon))
     }
 }
 

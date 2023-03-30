@@ -116,10 +116,10 @@ P3
         for i in 0..(self.width) {
             result += "\n";
 
-            // seperated into a new variable to make sure each line isnt too long
+            // separated into a new variable to make sure each line isn't too long
             let mut line = String::new();
 
-            // so we dont make a new line for every value greater than 70, just the first one
+            // so we don't make a new line for every value greater than 70, just the first one
             let mut count = 0;
 
             for j in 0..(self.height) {
@@ -134,10 +134,10 @@ P3
                 line += color_as_rgb_string.as_str();
 
                 if line.len() >= 70 + count {
-                    // makes sure each line isnt too long
+                    // makes sure each line isn't too long
                     line += "\n";
                     count += 70;
-                } else if i != self.width - 1 {
+                } else if j != self.height - 1 {
                     // adds a space between each pixel
                     line += " ";
                 }

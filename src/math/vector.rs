@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    f32::EPSILON,
+    ops::{Add, Div, Mul, Sub},
+};
 
 use super::{Matrix4x4, Point};
 
@@ -8,45 +11,41 @@ pub struct Vector {
 }
 
 impl Vector {
-    pub fn new(x: f32, y: f32, z: f32) -> Vector {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vector { xyz: [x, y, z] }
     }
 
-    pub fn new_arr(xyz: [f32; 3]) -> Vector {
+    pub fn new_arr(xyz: [f32; 3]) -> Self {
         Vector { xyz }
     }
 
     // rounds the vector to 5 decimal places (for floating point approximation)
-    pub fn round(self, decimal_point: f32) -> Vector {
-        Vector::new_arr(
-            self.xyz
-                .map(|v| (v * decimal_point).round() / decimal_point),
-        )
+    pub fn round(&self, epsilon: f32) -> Self {
+        Vector::new_arr(self.xyz.map(|v| (v / epsilon).round() * epsilon))
     }
 
     // negates the vector (-x, -y, -z)
-    pub fn negate(self) -> Vector {
+    pub fn negate(&self) -> Self {
         Vector::new_arr(self.xyz.map(|x| -x))
     }
 
     // returns the magnitude of the vector (sqrt(x^2 + y^2 + z^2)
-    pub fn magnitude(self) -> f32 {
+    pub fn magnitude(&self) -> f32 {
         self.xyz
             .into_iter()
-            .fold(0.0, |acc, x| acc + x * x)
-            .abs()
+            .fold(0.0, |acc, x| acc + x.powi(2))
             .sqrt()
     }
 
     // returns a new vector with the same direction as the original but with a magnitude of 1
-    pub fn normalize(self) -> Vector {
+    pub fn normalize(&self) -> Self {
         let mag = self.magnitude();
 
         Vector::new_arr(self.xyz.map(|x| x / mag))
     }
 
     // returns the dot product of two vectors (x1 * x2 + y1 * y2 + z1 * z2)
-    pub fn dot(self, rhs: Vector) -> f32 {
+    pub fn dot(&self, rhs: Vector) -> f32 {
         self.xyz
             .into_iter()
             .zip(rhs.xyz.into_iter())
@@ -54,12 +53,16 @@ impl Vector {
     }
 
     // returns the cross product of two vectors (y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2)
-    pub fn cross(self, rhs: Vector) -> Vector {
+    pub fn cross(&self, rhs: Vector) -> Self {
         Vector::new(
             self.xyz[1] * rhs.xyz[2] - self.xyz[2] * rhs.xyz[1],
             self.xyz[2] * rhs.xyz[0] - self.xyz[0] * rhs.xyz[2],
             self.xyz[0] * rhs.xyz[1] - self.xyz[1] * rhs.xyz[0],
         )
+    }
+
+    pub fn reflect(&self, normal: Vector) -> Self {
+        *self - normal * 2.0 * self.dot(normal)
     }
 }
 
@@ -121,15 +124,15 @@ impl Mul<Matrix4x4> for Vector {
         let x = self.xyz[0] * rhs.data[0][0]
             + self.xyz[1] * rhs.data[0][1]
             + self.xyz[2] * rhs.data[0][2]
-            + 1.0 * rhs.data[0][3];
+            + 0.0 * rhs.data[0][3];
         let y = self.xyz[0] * rhs.data[1][0]
             + self.xyz[1] * rhs.data[1][1]
             + self.xyz[2] * rhs.data[1][2]
-            + 1.0 * rhs.data[1][3];
+            + 0.0 * rhs.data[1][3];
         let z = self.xyz[0] * rhs.data[2][0]
             + self.xyz[1] * rhs.data[2][1]
             + self.xyz[2] * rhs.data[2][2]
-            + 1.0 * rhs.data[2][3];
+            + 0.0 * rhs.data[2][3];
 
         Vector::new(x, y, z)
     }
