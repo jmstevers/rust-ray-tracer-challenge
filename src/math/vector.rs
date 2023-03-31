@@ -28,10 +28,7 @@ impl Vector {
 
     // returns the magnitude of the vector (sqrt(x^2 + y^2 + z^2)
     pub fn magnitude(&self) -> f32 {
-        self.xyz
-            .into_iter()
-            .fold(0.0, |acc, x| acc + x.powi(2))
-            .sqrt()
+        self.xyz.iter().fold(0.0, |acc, x| acc + x.powi(2)).sqrt()
     }
 
     // returns a new vector with the same direction as the original but with a magnitude of 1
@@ -44,8 +41,8 @@ impl Vector {
     // returns the dot product of two vectors (x1 * x2 + y1 * y2 + z1 * z2)
     pub fn dot(&self, rhs: Vector) -> f32 {
         self.xyz
-            .into_iter()
-            .zip(rhs.xyz.into_iter())
+            .iter()
+            .zip(rhs.xyz.iter())
             .fold(0.0, |acc, x| acc + x.0 * x.1)
     }
 

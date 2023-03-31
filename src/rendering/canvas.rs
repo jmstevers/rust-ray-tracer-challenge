@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Add;
 
+use unroll::unroll_for_loops;
+
 use super::Color;
 
 #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
@@ -21,6 +23,7 @@ pub struct Canvas {
 
 impl Canvas {
     // create a new canvas with all pixels set to black
+    #[unroll_for_loops]
     pub fn new(width: i16, height: i16, color: Color) -> Self {
         let mut pixels = HashMap::new();
 
@@ -38,6 +41,7 @@ impl Canvas {
     }
 
     // write the canvas to a ppm file format
+    #[unroll_for_loops]
     pub fn to_ppm(&self) -> String {
         // header of ppm file
         let mut result = format!(

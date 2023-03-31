@@ -29,15 +29,15 @@ pub fn run() -> std::io::Result<()> {
         .map(|x| {
             Ray::point_vector(
                 Point::new(x.0 .0 as f32, x.0 .1 as f32, 0.0),
-                Vector::new(0.0, 0.0, 1.0).normalize(),
+                Vector::new(0.0, 0.0, 1.0),
             )
         })
-        .filter(|x| x.intersection(&sphere).is_some())
+        .filter(|x| x.intersection(&mut sphere).is_some())
         .collect();
 
     for i in hits.iter() {
         let point = i.position_at(
-            Ray::hit(&mut i.intersection(&sphere).unwrap().to_vec())
+            Ray::hit(&mut i.intersection(&mut sphere).unwrap())
                 .unwrap()
                 .time,
         );

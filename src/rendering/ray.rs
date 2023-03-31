@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, ops::Mul};
+use std::ops::Mul;
 
 use crate::math::{Matrix4x4, Point, Vector};
 
@@ -28,7 +28,7 @@ impl Ray {
 
     pub fn intersection(&self, object: &Object) -> Option<[Intersection; 2]> {
         let inverse_transform = *self * object.transform.inverse();
-        let sphere_to_ray = inverse_transform.origin - Point::new(0.0, 0.0, 0.0);
+        let sphere_to_ray = inverse_transform.origin - Point::zero();
 
         let a = inverse_transform.direction.dot(inverse_transform.direction);
         let b = inverse_transform.direction.dot(sphere_to_ray) * 2.0;
@@ -46,20 +46,16 @@ impl Ray {
         }
     }
 
-    pub fn hit(intersections: &mut Vec<Intersection>) -> Option<Intersection> {
-        loop {
-            let a = intersections
-                .iter()
-                .min_by(|x, y| x.time.partial_cmp(&y.time).unwrap_or(Ordering::Less))
-                .copied()?;
+    pub fn hit(intersections: &mut [Intersection; 2]) -> Option<Intersection> {
+        let a = match intersections[0].time > intersections[1].time {
+            true => intersections[0],
+            false => intersections[1],
+        };
 
-            if a.time < 0.0 {
-                intersections.retain(|x| x.time != a.time);
-            } else if intersections.len() == 0 {
-                return None;
-            } else {
-                return Some(a);
-            }
+        if a.time < 0.0 {
+            return None;
+        } else {
+            return Some(a);
         }
     }
 }

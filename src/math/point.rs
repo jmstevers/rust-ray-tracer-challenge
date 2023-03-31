@@ -18,8 +18,10 @@ impl Point {
         Point { xyz }
     }
 
-    pub fn zero() -> Self {
-        Point::new(0.0, 0.0, 0.0)
+    pub const fn zero() -> Self {
+        Point {
+            xyz: [0.0, 0.0, 0.0],
+        }
     }
 
     pub fn round(&self, epsilon: f32) -> Self {
