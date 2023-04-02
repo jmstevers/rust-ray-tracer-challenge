@@ -11,28 +11,29 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
-        Point { xyz: [x, y, z] }
+        Self { xyz: [x, y, z] }
     }
 
     pub fn new_arr(xyz: [f32; 3]) -> Self {
-        Point { xyz }
+        let xyz = [xyz[0], xyz[1], xyz[2]];
+        Self { xyz }
     }
 
     pub const fn zero() -> Self {
-        Point {
+        Self {
             xyz: [0.0, 0.0, 0.0],
         }
     }
 
     pub fn round(&self, epsilon: f32) -> Self {
-        Point::new_arr(self.xyz.map(|v| (v / epsilon).round() * epsilon))
+        Self::new_arr(self.xyz.map(|v| (v / epsilon).round() * epsilon))
     }
 }
 
 // subtracting two points results in a vector
-impl Sub<Point> for Point {
+impl Sub<Self> for Point {
     type Output = Vector;
-    fn sub(self, rhs: Point) -> Self::Output {
+    fn sub(self, rhs: Self) -> Vector {
         Vector::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[0],
@@ -45,7 +46,7 @@ impl Sub<Point> for Point {
 impl Sub<Vector> for Point {
     type Output = Self;
     fn sub(self, rhs: Vector) -> Self {
-        Point::new(
+        Self::new(
             self.xyz[0] - rhs.xyz[0],
             self.xyz[1] - rhs.xyz[1],
             self.xyz[2] - rhs.xyz[2],
@@ -69,7 +70,7 @@ impl Mul<Matrix4x4> for Point {
             + self.xyz[2] * rhs.data[2][2]
             + 1.0 * rhs.data[2][3];
 
-        Point::new(x, y, z)
+        Self::new(x, y, z)
     }
 }
 

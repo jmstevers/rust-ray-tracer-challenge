@@ -1,6 +1,6 @@
 #![allow(dead_code)]
-#![feature(array_zip)]
 #![allow(unused_assignments)]
+#![feature(array_zip)]
 
 mod checkpoints;
 mod math;

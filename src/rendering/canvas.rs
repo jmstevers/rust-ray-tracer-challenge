@@ -1,90 +1,61 @@
-use std::collections::HashMap;
-use std::ops::Add;
+use std::fmt::Write;
 
 use unroll::unroll_for_loops;
 
 use super::Color;
 
-#[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
-pub struct Coordinate(pub i16, pub i16);
-
-impl Add<(i16, i16)> for Coordinate {
-    type Output = Self;
-    fn add(self, rhs: (i16, i16)) -> Self::Output {
-        Coordinate(self.0 + rhs.0, self.1 + rhs.1)
-    }
-}
-
 pub struct Canvas {
-    pub width: i16,
-    pub height: i16,
-    pub pixels: HashMap<Coordinate, Color>,
+    pub width: i32,
+    pub height: i32,
+    pub pixels: Vec<Vec<Color>>,
 }
 
 impl Canvas {
     // create a new canvas with all pixels set to black
     #[unroll_for_loops]
-    pub fn new(width: i16, height: i16, color: Color) -> Self {
-        let mut pixels = HashMap::new();
+    pub fn new(width: i32, height: i32, color: Color) -> Self {
+        let mut pixels = Vec::new();
 
         for i in 0..(width) {
-            for j in 0..(height) {
-                pixels.insert(Coordinate(i, j), color);
+            pixels.push(Vec::new());
+            for _ in 0..(height) {
+                pixels[i as usize].push(color);
             }
         }
 
-        Canvas {
+        Self {
             width,
             height,
             pixels,
         }
     }
 
-    // write the canvas to a ppm file format
     #[unroll_for_loops]
     pub fn to_ppm(&self) -> String {
-        // header of ppm file
-        let mut result = format!(
-            "\
-P3
-{} {}
-255",
-            self.width, self.height
-        );
+        let size: usize = (self.width * self.height * 12 + 16) as usize;
+        let mut result = String::with_capacity(size); // pre-allocate buffer
 
-        // loops through each pixel and adds it to the result string
-        for i in 0..(self.width) {
-            result += "\n";
+        write!(&mut result, "P3\n{} {}\n255\n", self.width, self.height).unwrap();
 
-            // separated into a new variable to make sure each line isn't too long
-            let mut line = String::new();
+        self.pixels.iter().for_each(|row| {
+            row.iter().for_each(|pixel| {
+                let rgb = pixel.to_rgb();
 
-            // so we don't make a new line for every value greater than 70, just the first one
-            let mut count = 0;
-
-            for j in 0..(self.height) {
-                // gets the color of the pixel and converts it to a string
-                let color_as_rgb_string = self
-                    .pixels
-                    .get(&Coordinate(i, j))
-                    .unwrap()
-                    .to_rgb()
-                    .to_string();
-
-                line += color_as_rgb_string.as_str();
-
-                if line.len() >= 70 + count {
-                    // makes sure each line isn't too long
-                    line += "\n";
-                    count += 70;
-                } else if j != self.height - 1 {
-                    // adds a space between each pixel
-                    line += " ";
+                if !result.ends_with('\n') {
+                    result.push(' ');
                 }
-            }
-            result += line.as_str();
-        }
-        result += "\n";
+
+                if result.len() - result.rfind('\n').unwrap_or(0) + rgb.len() > 70 {
+                    result.push('\n');
+                }
+
+                result.push_str(&rgb);
+                result.push(' ');
+            });
+
+            result.push('\n');
+        });
+
         result
     }
 }

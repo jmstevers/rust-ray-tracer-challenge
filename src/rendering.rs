@@ -5,6 +5,7 @@ pub mod material;
 pub mod object;
 pub mod point_light;
 pub mod ray;
+pub mod world;
 
 pub use canvas::Canvas;
 pub use color::Color;
@@ -32,7 +33,7 @@ pub fn lighting(
     if light_dot_normal >= 0.0 {
         diffuse = effective_color * material.diffuse * light_dot_normal;
 
-        let reflect = light_vector.negate().reflect(normal);
+        let reflect = light_vector.reflect(normal);
         let reflect_dot_eye = reflect.dot(eye);
 
         if reflect_dot_eye > 0.0 {

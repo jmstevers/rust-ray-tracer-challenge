@@ -11,15 +11,15 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new(px: f32, py: f32, pz: f32, vx: f32, vy: f32, vz: f32) -> Ray {
-        Ray {
+    pub fn new(px: f32, py: f32, pz: f32, vx: f32, vy: f32, vz: f32) -> Self {
+        Self {
             origin: Point::new(px, py, pz),
             direction: Vector::new(vx, vy, vz),
         }
     }
 
-    pub fn point_vector(origin: Point, direction: Vector) -> Ray {
-        Ray { origin, direction }
+    pub fn point_vector(origin: Point, direction: Vector) -> Self {
+        Self { origin, direction }
     }
 
     pub fn position_at(&self, time: f32) -> Point {
@@ -27,22 +27,25 @@ impl Ray {
     }
 
     pub fn intersection(&self, object: &Object) -> Option<[Intersection; 2]> {
-        let inverse_transform = *self * object.transform.inverse();
+        let inverse_transform = *self * object.inverse_transform;
         let sphere_to_ray = inverse_transform.origin - Point::zero();
 
         let a = inverse_transform.direction.dot(inverse_transform.direction);
         let b = inverse_transform.direction.dot(sphere_to_ray) * 2.0;
         let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
 
-        let discriminant = b * b - 4.0 * a * c;
+        let discriminant = b.powi(2) - 4.0 * a * c;
 
         if discriminant >= 0.0 {
-            return Some([
-                Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *object),
-                Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *object),
-            ]);
+            let sqrt_discriminant = discriminant.sqrt();
+            let two_a = 2.0 * a;
+            let inv_two_a = 1.0 / two_a;
+            Some([
+                Intersection::new((-b - sqrt_discriminant) * inv_two_a, *object),
+                Intersection::new((-b + sqrt_discriminant) * inv_two_a, *object),
+            ])
         } else {
-            return None;
+            None
         }
     }
 
@@ -62,7 +65,7 @@ impl Ray {
 
 impl Mul<Matrix4x4> for Ray {
     type Output = Self;
-    fn mul(self, rhs: Matrix4x4) -> Self::Output {
-        Ray::point_vector(self.origin * rhs, self.direction * rhs)
+    fn mul(self, rhs: Matrix4x4) -> Self {
+        Self::point_vector(self.origin * rhs, self.direction * rhs)
     }
 }

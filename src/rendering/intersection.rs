@@ -8,6 +8,6 @@ pub struct Intersection {
 
 impl Intersection {
     pub fn new(time: f32, object: Object) -> Intersection {
-        Intersection { time, object }
+        Self { time, object }
     }
 }

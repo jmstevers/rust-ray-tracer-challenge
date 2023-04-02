@@ -12,14 +12,18 @@ pub struct Object {
     pub shape: Shape,
     pub material: Material,
     pub transform: Matrix4x4,
+    pub inverse_transform: Matrix4x4,
+    pub inverse_transpose_transform: Matrix4x4,
 }
 
 impl Object {
     pub fn new_sphere(material: Material, transform: Matrix4x4) -> Self {
-        Object {
+        Self {
             shape: Shape::Sphere,
             material,
             transform,
+            inverse_transform: Matrix4x4::zero(),
+            inverse_transpose_transform: Matrix4x4::zero(),
         }
     }
 
@@ -29,10 +33,18 @@ impl Object {
         }
     }
 
+    pub fn calc_inverse_transform(&mut self) {
+        self.inverse_transform = self.transform.inverse().unwrap();
+    }
+
+    pub fn calc_inverse_transpose_transform(&mut self) {
+        self.inverse_transpose_transform = self.inverse_transform.transpose();
+    }
+
     fn sphere_normal(&self, point: Point) -> Vector {
-        let sphere_point = point * self.transform.inverse();
+        let sphere_point = point * self.inverse_transform;
         let sphere_normal = sphere_point - Point::zero();
-        let world_normal = sphere_normal * self.transform.inverse().transpose();
+        let world_normal = sphere_normal * self.inverse_transpose_transform;
 
         world_normal.normalize()
     }
